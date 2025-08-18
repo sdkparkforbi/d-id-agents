@@ -62,7 +62,7 @@ html_code = """
       data-monitor="true"
       data-target-id="did-agent-container"
       data-auto-emotions="false"
-      data-expression="serious"
+      data-expression="sad"
       data-emotion-intensity="0.7">
 </script>
 """
@@ -74,3 +74,4 @@ components.html(html_code, height=650)
 # surprised - 놀라는 표정
 # happy - 기쁜 표정
 # sad - 슬픈 표정
+
