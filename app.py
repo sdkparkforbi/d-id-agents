@@ -36,12 +36,12 @@
 # </script>
 # """
 
+# components.html(html_code, height=650)
+
 import streamlit as st
 import streamlit.components.v1 as components
 
 st.title("D-ID AI Agent")
-
-components.html(html_code, height=650)
 
 <script type="module"
       src="https://agent.d-id.com/v2/index.js"
@@ -110,6 +110,7 @@ components.html(html_code, height=650)
 # surprised - 놀라는 표정
 # happy - 기쁜 표정
 # sad - 슬픈 표정
+
 
 
 
