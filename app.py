@@ -43,6 +43,8 @@ import streamlit.components.v1 as components
 
 st.title("D-ID AI Agent")
 
+html_code = """
+<div id="did-agent-container" style="width: 80%; height: 600px;"></div>
 <script type="module"
       src="https://agent.d-id.com/v2/index.js"
       data-mode="fabio"
@@ -51,8 +53,10 @@ st.title("D-ID AI Agent")
       data-name="did-agent"
       data-monitor="true"
       data-orientation="horizontal"
-      data-position="right">
+      data-position="right"
+      data-target-id="did-agent-container">
 </script>
+"""
 
 components.html(html_code, height=650)
  
@@ -110,6 +114,7 @@ components.html(html_code, height=650)
 # surprised - 놀라는 표정
 # happy - 기쁜 표정
 # sad - 슬픈 표정
+
 
 
 
