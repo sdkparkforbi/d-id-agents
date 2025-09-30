@@ -10,7 +10,7 @@ html_code = """
       data-mode="full"
       data-client-key="Z29vZ2xlLW9hdXRoMnwxMTI3NjQ3MzA0NTM3NjA0MTgyMTI6d01EN0x6bFFFMmlZSk9nUHNacXll"
       data-agent-id="v2_agt_80jV_9EA"
-      data-name="did-agent"
+      data-name=""
       data-monitor="true"
       data-target-id="did-agent-container">
 </script>
@@ -93,6 +93,7 @@ components.html(html_code, height=650)
 # surprised - 놀라는 표정
 # happy - 기쁜 표정
 # sad - 슬픈 표정
+
 
 
 
