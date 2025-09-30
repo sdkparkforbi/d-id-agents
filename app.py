@@ -77,7 +77,7 @@ html_code = """
 
 <div id="did-agent-container" style="
     width: 280px; 
-    height: 280px; 
+    height: 300px; 
     position: fixed; 
     bottom: 20px; 
     right: 20px; 
@@ -179,6 +179,7 @@ components.html(html_code, height=650)
 # surprised - 놀라는 표정
 # happy - 기쁜 표정
 # sad - 슬픈 표정
+
 
 
 
