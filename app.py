@@ -4,13 +4,13 @@ import streamlit.components.v1 as components
 st.title("D-ID AI Agent")
 
 html_code = """
-<div id="did-agent-container" style="width: 80%; height: 600px;"></div>
+<div id="did-agent-container" style="width: 200px; height: 280px; position: fixed; bottom: 20px; right: 20px; z-index: 99999; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.4); background: white;"></div>
 <script type="module"
       src="https://agent.d-id.com/v2/index.js"
       data-mode="full"
       data-client-key="Z29vZ2xlLW9hdXRoMnwxMTI3NjQ3MzA0NTM3NjA0MTgyMTI6d01EN0x6bFFFMmlZSk9nUHNacXll"
       data-agent-id="v2_agt_80jV_9EA"
-      data-name=""
+      data-name="did-agent"
       data-monitor="true"
       data-target-id="did-agent-container">
 </script>
