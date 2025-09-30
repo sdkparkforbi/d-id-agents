@@ -1,7 +1,7 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-st.title("D-ID AI Agent")
+st.title("")
 
 html_code = """
 <div id="did-agent-container" style="width: 200px; height: 280px; position: fixed; bottom: 20px; right: 20px; z-index: 99999; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.4); background: white;"></div>
@@ -93,6 +93,7 @@ components.html(html_code, height=650)
 # surprised - 놀라는 표정
 # happy - 기쁜 표정
 # sad - 슬픈 표정
+
 
 
 
