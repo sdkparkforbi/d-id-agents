@@ -8,38 +8,85 @@ html_code = """
 <html>
 <head>
 <style>
-/* D-ID 에이전트 컨테이너 내부 텍스트 크기 조절 */
+/* D-ID 에이전트 컨테이너 내부 스타일 조정 */
 #did-agent-container {
-    font-size: 12px !important; /* 기본 글자 크기 설정 */
+    font-size: 12px !important;
 }
 
-/* D-ID 에이전트 내부의 모든 텍스트 요소에 적용 */
-#did-agent-container * {
-    font-size: inherit !important;
+/* 아바타 이미지/비디오를 중앙 정렬 */
+#did-agent-container .agent-video,
+#did-agent-container .agent-avatar,
+#did-agent-container video,
+#did-agent-container img {
+    display: block !important;
+    margin: 0 auto !important;
+    text-align: center !important;
 }
 
-/* 버튼 텍스트 크기 조절 */
+/* 아바타 컨테이너 중앙 정렬 */
+#did-agent-container .video-container,
+#did-agent-container .avatar-container,
+#did-agent-container .agent-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* Start Conversation 버튼 텍스트 크기 축소 */
 #did-agent-container button {
-    font-size: 11px !important;
+    font-size: 10px !important;
+    padding: 6px 10px !important;
 }
 
-/* 제목이나 헤더 텍스트 크기 조절 */
-#did-agent-container h1, 
-#did-agent-container h2, 
-#did-agent-container h3 {
-    font-size: 13px !important;
+/* Start Conversation 버튼 특별 처리 */
+#did-agent-container button[type="button"],
+#did-agent-container .start-button,
+#did-agent-container .conversation-button {
+    font-size: 9px !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
 }
 
-/* 대화 텍스트 크기 조절 */
+/* 모든 버튼 내부 텍스트 */
+#did-agent-container button span,
+#did-agent-container button div {
+    font-size: 9px !important;
+}
+
+/* 대화 텍스트 크기 */
 #did-agent-container .message,
-#did-agent-container .chat-text {
-    font-size: 11px !important;
+#did-agent-container .chat-text,
+#did-agent-container p {
+    font-size: 10px !important;
+}
+
+/* 입력 필드 텍스트 크기 */
+#did-agent-container input,
+#did-agent-container textarea {
+    font-size: 10px !important;
+}
+
+/* 마이크 버튼 아이콘 크기 조정 */
+#did-agent-container .mic-button,
+#did-agent-container .microphone-button {
+    transform: scale(0.8) !important;
 }
 </style>
 </head>
 <body>
 
-<div id="did-agent-container" style="width: 200px; height: 280px; position: fixed; bottom: 20px; right: 20px; z-index: 99999; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.4); background: white;"></div>
+<div id="did-agent-container" style="
+    width: 200px; 
+    height: 280px; 
+    position: fixed; 
+    bottom: 20px; 
+    right: 20px; 
+    z-index: 99999; 
+    border-radius: 15px; 
+    overflow: hidden; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4); 
+    background: white;">
+</div>
 
 <script type="module"
       src="https://agent.d-id.com/v2/index.js"
@@ -132,6 +179,7 @@ components.html(html_code, height=650)
 # surprised - 놀라는 표정
 # happy - 기쁜 표정
 # sad - 슬픈 표정
+
 
 
 
