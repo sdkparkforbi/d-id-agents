@@ -229,74 +229,72 @@ with main_col:
 
 # 오른쪽 AI 어시스턴트 영역
 with agent_col:
-    # 상단에 여백 추가 (메인 컨텐츠와 높이 맞추기)
-    st.write("")
-    st.write("")
+    # AI 어시스턴트 컨테이너
+    st.markdown("### 🤖 AI 어시스턴트")
+    st.caption("궁금한 점을 물어보세요!")
     
-    # AI 어시스턴트 섹션
-    with st.container():
-        st.markdown("### 🤖 AI 어시스턴트")
-        st.caption("궁금한 점을 물어보세요!")
-        
-        # D-ID 에이전트 HTML
-        did_html = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-        <style>
-            body { 
-                margin: 0; 
-                padding: 0; 
-                background: white;
-                border-radius: 10px;
-            }
-            #did-agent-container {
-                width: 100%;
-                height: 100%;
-                font-size: 11px !important;
-            }
-            #did-agent-container button {
-                font-size: 9px !important;
-                padding: 5px 8px !important;
-            }
-            #did-agent-container input,
-            #did-agent-container textarea {
-                font-size: 10px !important;
-            }
-        </style>
-        </head>
-        <body>
-        <div id="did-agent-container"></div>
-        <script type="module"
-              src="https://agent.d-id.com/v2/index.js"
-              data-mode="full"
-              data-client-key="Z29vZ2xlLW9hdXRoMnwxMTI3NjQ3MzA0NTM3NjA0MTgyMTI6d01EN0x6bFFFMmlZSk9nUHNacXll"
-              data-agent-id="v2_agt_80jV_9EA"
-              data-name="did-agent"
-              data-monitor="true"
-              data-target-id="did-agent-container">
-        </script>
-        </body>
-        </html>
-        """
-        
-        # AI 어시스턴트 렌더링 (충분한 높이 확보)
-        components.html(did_html, height=500)
-        
-        # 추가 정보
-        st.markdown("---")
-        st.caption("""
-        💡 **도움말:**
-        - 음성으로 질문 가능
-        - 경영학 관련 모든 질문 환영
-        - 진로 상담도 가능해요!
-        """)
+    # D-ID 에이전트 HTML
+    did_html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        html, body { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%;
+            height: 100%;
+            background: white;
+            overflow: hidden;
+        }
+        #did-agent-container {
+            width: 100%;
+            height: 100%;
+            min-height: 600px;
+            font-size: 11px !important;
+            display: block;
+        }
+        #did-agent-container button {
+            font-size: 9px !important;
+            padding: 5px 8px !important;
+        }
+        #did-agent-container input,
+        #did-agent-container textarea {
+            font-size: 10px !important;
+        }
+        /* 에이전트가 로드될 때까지 로딩 메시지 표시 */
+        #did-agent-container:empty::before {
+            content: "AI 어시스턴트 로딩중...";
+            display: block;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+    </head>
+    <body>
+    <div id="did-agent-container"></div>
+    <script type="module"
+          src="https://agent.d-id.com/v2/index.js"
+          data-mode="full"
+          data-client-key="Z29vZ2xlLW9hdXRoMnwxMTI3NjQ3MzA0NTM3NjA0MTgyMTI6d01EN0x6bFFFMmlZSk9nUHNacXll"
+          data-agent-id="v2_agt_80jV_9EA"
+          data-name="did-agent"
+          data-monitor="true"
+          data-target-id="did-agent-container">
+    </script>
+    </body>
+    </html>
+    """
+    
+    # AI 어시스턴트 렌더링 (높이 증가)
+    components.html(did_html, height=800, scrolling=False)
+    
+    # 추가 정보는 제거하여 공간 확보
 
 # Footer
 st.markdown("---")
 st.caption("📧 문의: 미래융합대학 헬스케어융합학부 박대근 교수 | 🌐 전공 홈페이지: biz.cha.ac.kr")
-
-
-
 
 
