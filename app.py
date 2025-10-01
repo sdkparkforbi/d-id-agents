@@ -289,13 +289,14 @@ with agent_col:
     """
     
     # AI 어시스턴트 렌더링 (높이 증가)
-    components.html(did_html, height=200, scrolling=False)
+    components.html(did_html, height=300, scrolling=True)
     
     # 추가 정보는 제거하여 공간 확보
 
 # Footer
 st.markdown("---")
 st.caption("📧 문의: 미래융합대학 헬스케어융합학부 박대근 교수 | 🌐 전공 홈페이지: biz.cha.ac.kr")
+
 
 
 
