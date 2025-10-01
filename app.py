@@ -256,8 +256,8 @@ with agent_col:
             display: block;
         }
         #did-agent-container button {
-            font-size: 9px !important;
-            padding: 5px 8px !important;
+            font-size: 5px !important;
+            padding: 2px 4px !important;
         }
         #did-agent-container input,
         #did-agent-container textarea {
@@ -296,6 +296,7 @@ with agent_col:
 # Footer
 st.markdown("---")
 st.caption("📧 문의: 미래융합대학 헬스케어융합학부 박대근 교수 | 🌐 전공 홈페이지: biz.cha.ac.kr")
+
 
 
 
