@@ -243,8 +243,8 @@ with agent_col:
         html, body { 
             margin: 0; 
             padding: 0; 
-            width: 50%;
-            height: 50%;
+            width: 100%;
+            height: 100%;
             background: white;
             overflow: hidden;
         }
@@ -252,7 +252,7 @@ with agent_col:
             width: 50%;
             height: 50%;
             min-height: 300px;
-            font-size: 11px !important;
+            font-size: 9px !important;
             display: block;
         }
         #did-agent-container button {
@@ -261,7 +261,7 @@ with agent_col:
         }
         #did-agent-container input,
         #did-agent-container textarea {
-            font-size: 10px !important;
+            font-size: 9px !important;
         }
         /* 에이전트가 로드될 때까지 로딩 메시지 표시 */
         #did-agent-container:empty::before {
@@ -289,13 +289,14 @@ with agent_col:
     """
     
     # AI 어시스턴트 렌더링 (높이 증가)
-    components.html(did_html, height=400, scrolling=False)
+    components.html(did_html, height=200, scrolling=False)
     
     # 추가 정보는 제거하여 공간 확보
 
 # Footer
 st.markdown("---")
 st.caption("📧 문의: 미래융합대학 헬스케어융합학부 박대근 교수 | 🌐 전공 홈페이지: biz.cha.ac.kr")
+
 
 
 
