@@ -249,7 +249,7 @@ with agent_col:
             overflow: hidden;
         }
         #did-agent-container {
-            width: 75%;
+            width: 60%;
             height: 50%;
             min-height: 300px;
             font-size: 9px !important;
@@ -296,6 +296,7 @@ with agent_col:
 # Footer
 st.markdown("---")
 st.caption("📧 문의: 미래융합대학 헬스케어융합학부 박대근 교수 | 🌐 전공 홈페이지: biz.cha.ac.kr")
+
 
 
 
