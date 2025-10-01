@@ -243,8 +243,8 @@ with agent_col:
         html, body { 
             margin: 0; 
             padding: 0; 
-            width: 100%;
-            height: 100%;
+            width: 50%;
+            height: 50%;
             background: white;
             overflow: hidden;
         }
@@ -296,6 +296,7 @@ with agent_col:
 # Footer
 st.markdown("---")
 st.caption("📧 문의: 미래융합대학 헬스케어융합학부 박대근 교수 | 🌐 전공 홈페이지: biz.cha.ac.kr")
+
 
 
 
