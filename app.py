@@ -32,31 +32,29 @@ with main_col:
         with col1:
             st.subheader("📚 연구 분야")
             st.info("""
-            **전통 경영학**
-            - 나이키 "Just Do It" 같은 전설적 마케팅 사례
-            - 기업 전략 및 조직 관리
-            - 소비자 행동 분석
+            **경영학 핵심 이론**
+            - 경영기획: 기업전략, 조직관리 등 
+            - 마케팅: 소비자 행동, 브랜드 전략, 서비스 마케팅 등 
+            - 회계재무: 기업가치 평가, 회계투명성, 투자의사결정 등 
             
             **최신 트렌드**
-            - ESG 경영과 기업가치
-            - AI 서비스 로봇 도입 전략
-            - 생성형 AI 뉴스 빅데이터 분석
+            - 경영기획: ESG 평가지표 개발, 기업지배구조 개선
+            - 마케팅: AI 서비스 로봇 수용도, MZ세대 SNS 전략
+            - 회계재무: 제약·바이오 R&D 회계처리, 공시정보 신뢰성
             """)
             
         with col2:
             st.subheader("🏆 교수진 연구 성과")
             st.success("""
             **국내외 저널 게재**
-            - Psychology & Marketing
-            - Applied Economics Letters
-            - 한국방송학보 (2024)
-            - 한국언론학보 (2025)
-            
+            - 국제: Psychology & Marketing | Applied Economics Letters | Journal of Forecasting | International Journal of Hospitality Management | Journal of Vacation Marketing | International Journal of Tourism Research
+            - 국내: 회계학연구 | 경영학연구 | 한국언론학보 | 한국방송학보 | 고객만족경영연구 | 상품학연구 | 경영과학회지 | 회계저널
+                        
             **주요 연구 주제**
-            - ESG 부정 보도의 기업가치 영향
-            - 디지털 리터러시와 사회참여
-            - K-콘텐츠의 베트남 시장 영향
-            - AI 로봇 서비스 수용도
+            - 경영기획: ESG 뉴스의 기업가치 영향 분석 등 
+            - 마케팅: K-콘텐츠의 글로벌 시장 전략, 디지털 리터러시와 소비자 참여 등 
+            - 회계재무: 주주권 행사와 이익조정, 신용평가와 재무보고 적시성 등 
+            - 융합분야: AI융합연구방법론, AI를 활용한 시계열 예측, AI 지능형 봇 개발 등  
             """)
     
     with tabs[1]:
@@ -808,6 +806,7 @@ with agent_col:
 # Footer
 st.markdown("---")
 st.caption("📧 문의: 미래융합대학 헬스케어융합학부 박대근 교수 | 🌐 전공 홈페이지: biz.cha.ac.kr")
+
 
 
 
