@@ -12,7 +12,7 @@ st.set_page_config(
 st.title("🎓 경영학전공 1문 1답")
 st.caption("미래융합대학 헬스케어융합학부 | 박대근 교수")
 
-# 14개 탭 구성 (질문 짧게 축약)
+# 14개 탭 구성
 tabs = st.tabs([
     "연구분야", "통합교육", "취업전망", "세부전공", "미래가치", 
     "팀프로젝트", "바이오융합", "차대만의강점", "졸업생진로", 
@@ -711,7 +711,7 @@ with tabs[13]:
         - 브랜드 필름 감독
         - 디지털 마케터
         """)
-        
+
 # D-ID 플로팅 AI 어시스턴트
 did_html = """
 <!DOCTYPE html>
@@ -740,4 +740,5 @@ components.html(did_html, height=0)
 # Footer
 st.markdown("---")
 st.caption("📧 문의: 미래융합대학 헬스케어융합학부 박대근 교수 | 🌐 전공 홈페이지: biz.cha.ac.kr")
+
 
