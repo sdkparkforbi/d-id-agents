@@ -8,42 +8,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS로 iframe 위치 고정
-st.markdown("""
-<style>
-    iframe[title="components.html.st_html"] {
-        position: fixed !important;
-        bottom: 0 !important;
-        right: 0 !important;
-        width: 200px !important;
-        height: 200px !important;
-        z-index: 999999 !important;
-        border: none !important;
-        pointer-events: auto !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# D-ID Agent (맨 위에 배치)
-did_html = """
-<script type="module">
-const script = document.createElement('script');
-script.type = 'module';
-script.src = 'https://agent.d-id.com/v2/index.js';
-script.setAttribute('data-mode', 'fabio');
-script.setAttribute('data-client-key', 'Z29vZ2xlLW9hdXRoMnwxMTI3NjQ3MzA0NTM3NjA0MTgyMTI6d01EN0x6bFFFMmlZSk9nUHNacXll');
-script.setAttribute('data-agent-id', 'v2_agt_80jV_9EA');
-script.setAttribute('data-name', 'did-agent');
-script.setAttribute('data-monitor', 'true');
-script.setAttribute('data-orientation', 'horizontal');
-script.setAttribute('data-position', 'right');
-document.body.appendChild(script);
-</script>
-"""
-
-components.html(did_html, height=0)
-
-
 # 제목
 st.title("🎓 경영학전공 1문 1답")
 st.caption("미래융합대학 헬스케어융합학부 | 박대근 교수")
@@ -752,6 +716,48 @@ with tabs[13]:
 st.markdown("---")
 st.caption("📧 문의: 미래융합대학 헬스케어융합학부 박대근 교수 | 🌐 전공 홈페이지: biz.cha.ac.kr")
 
+st.markdown("---")
+st.markdown("### 💬 AI 상담 어시스턴트")
+st.info("우측 하단에 AI 아바타가 표시됩니다. 클릭하여 질문하세요!")
+
+# 더 큰 height로 테스트
+did_html = """
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0; padding:20px; background:#f0f0f0;">
+    <p style="text-align:center; color:#666;">AI 상담 로딩 중... (우측 하단 확인)</p>
+    <script type="module">
+        console.log('Starting D-ID Agent initialization...');
+        
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = 'https://agent.d-id.com/v2/index.js';
+        script.setAttribute('data-mode', 'fabio');
+        script.setAttribute('data-client-key', 'Z29vZ2xlLW9hdXRoMnwxMTI3NjQ3MzA0NTM3NjA0MTgyMTI6d01EN0x6bFFFMmlZSk9nUHNacXll');
+        script.setAttribute('data-agent-id', 'v2_agt_80jV_9EA');
+        script.setAttribute('data-name', 'did-agent');
+        script.setAttribute('data-monitor', 'true');
+        script.setAttribute('data-orientation', 'horizontal');
+        script.setAttribute('data-position', 'right');
+        
+        script.onload = () => {
+            console.log('✅ SUCCESS: D-ID Agent loaded');
+            document.body.innerHTML = '<p style="text-align:center; color:green;">✅ AI 상담 준비 완료!</p>';
+        };
+        
+        script.onerror = (e) => {
+            console.error('❌ ERROR loading D-ID Agent:', e);
+            document.body.innerHTML = '<p style="text-align:center; color:red;">❌ AI 상담 로딩 실패</p>';
+        };
+        
+        document.body.appendChild(script);
+    </script>
+</body>
+</html>
+"""
+
+components.html(did_html, height=100)
 
 
 
