@@ -8,24 +8,34 @@ st.set_page_config(
     layout="wide"
 )
 
-# D-ID Agent - st.html() 사용
-st.html("""
-<script type="module">
-(function() {
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.src = 'https://agent.d-id.com/v2/index.js';
-    script.setAttribute('data-mode', 'fabio');
-    script.setAttribute('data-client-key', 'Z29vZ2xlLW9hdXRoMnwxMTI3NjQ3MzA0NTM3NjA0MTgyMTI6d01EN0x6bFFFMmlZSk9nUHNacXll');
-    script.setAttribute('data-agent-id', 'v2_agt_80jV_9EA');
-    script.setAttribute('data-name', 'did-agent');
-    script.setAttribute('data-monitor', 'true');
-    script.setAttribute('data-orientation', 'horizontal');
-    script.setAttribute('data-position', 'right');
-    document.body.appendChild(script);
-})();
-</script>
-""")
+# ⭐ D-ID Agent를 맨 위에 배치 (height=0으로 공간 차지 안 함)
+did_html = """
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    body { margin: 0; padding: 0; height: 0; overflow: visible; }
+</style>
+</head>
+<body>
+    <script type="module">
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = 'https://agent.d-id.com/v2/index.js';
+        script.setAttribute('data-mode', 'fabio');
+        script.setAttribute('data-client-key', 'Z29vZ2xlLW9hdXRoMnwxMTI3NjQ3MzA0NTM3NjA0MTgyMTI6d01EN0x6bFFFMmlZSk9nUHNacXll');
+        script.setAttribute('data-agent-id', 'v2_agt_80jV_9EA');
+        script.setAttribute('data-name', 'did-agent');
+        script.setAttribute('data-monitor', 'true');
+        script.setAttribute('data-orientation', 'horizontal');
+        script.setAttribute('data-position', 'right');
+        document.body.appendChild(script);
+    </script>
+</body>
+</html>
+"""
+
+components.html(did_html, height=0)  # height=0으로 공간 차지 안 함
 
 # 제목
 st.title("🎓 경영학전공 1문 1답")
@@ -734,6 +744,7 @@ with tabs[13]:
 # Footer
 st.markdown("---")
 st.caption("📧 문의: 미래융합대학 헬스케어융합학부 박대근 교수 | 🌐 전공 홈페이지: biz.cha.ac.kr")
+
 
 
 
