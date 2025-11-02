@@ -763,15 +763,28 @@ with agent_col:
     </head>
     <body>
     <div id="did-agent-container"></div>
+    
+    # <script type="module"
+    #       src="https://agent.d-id.com/v2/index.js"
+    #       data-mode="fabio"
+    #       data-client-key="Z29vZ2xlLW9hdXRoMnwxMTI3NjQ3MzA0NTM3NjA0MTgyMTI6d01EN0x6bFFFMmlZSk9nUHNacXll"
+    #       data-agent-id="v2_agt_80jV_9EA"
+    #       data-name="did-agent"
+    #       data-monitor="true"
+    #       data-target-id="did-agent-container">
+    # </script>
+
     <script type="module"
-          src="https://agent.d-id.com/v2/index.js"
-          data-mode="full"
-          data-client-key="Z29vZ2xlLW9hdXRoMnwxMTI3NjQ3MzA0NTM3NjA0MTgyMTI6d01EN0x6bFFFMmlZSk9nUHNacXll"
-          data-agent-id="v2_agt_80jV_9EA"
-          data-name="did-agent"
-          data-monitor="true"
-          data-target-id="did-agent-container">
+      src="https://agent.d-id.com/v2/index.js"
+      data-mode="fabio"
+      data-client-key="Z29vZ2xlLW9hdXRoMnwxMTI3NjQ3MzA0NTM3NjA0MTgyMTI6d01EN0x6bFFFMmlZSk9nUHNacXll"
+      data-agent-id="v2_agt_80jV_9EA"
+      data-name="did-agent"
+      data-monitor="true"
+      data-orientation="horizontal"
+      data-position="right">
     </script>
+    
     </body>
     </html>
     """
@@ -782,6 +795,7 @@ with agent_col:
 # Footer
 st.markdown("---")
 st.caption("📧 문의: 미래융합대학 헬스케어융합학부 박대근 교수 | 🌐 전공 홈페이지: biz.cha.ac.kr")
+
 
 
 
