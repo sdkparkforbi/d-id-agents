@@ -712,34 +712,67 @@ with tabs[13]:
         - 디지털 마케터
         """)
 
-# D-ID 플로팅 AI 어시스턴트
+# Footer
+st.markdown("---")
+st.caption("📧 문의: 미래융합대학 헬스케어융합학부 박대근 교수 | 🌐 전공 홈페이지: biz.cha.ac.kr")
+
+# D-ID Agent (마곡난임센터 코드 그대로 적용)
 did_html = """
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+        }
+        /* D-ID Agent 관련 스타일 */
+        #did-agent {
+            position: fixed !important;
+            bottom: 20px !important;
+            right: 20px !important;
+            z-index: 9999 !important;
+        }
+    </style>
 </head>
 <body>
-<script type="module"
-  src="https://agent.d-id.com/v2/index.js"
-  data-mode="fabio"
-  data-client-key="Z29vZ2xlLW9hdXRoMnwxMTI3NjQ3MzA0NTM3NjA0MTgyMTI6d01EN0x6bFFFMmlZSk9nUHNacXll"
-  data-agent-id="v2_agt_80jV_9EA"
-  data-name="did-agent"
-  data-monitor="true"
-  data-orientation="horizontal"
-  data-position="right">
-</script>
+    <!-- D-ID Agent Container -->
+    <div id="did-agent-container"></div>
+
+    <!-- D-ID Agent Script -->
+    <script type="module">
+        // D-ID Agent 초기화 스크립트
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = 'https://agent.d-id.com/v2/index.js';
+        script.setAttribute('data-mode', 'fabio');
+        script.setAttribute('data-client-key', 'Z29vZ2xlLW9hdXRoMnwxMTI3NjQ3MzA0NTM3NjA0MTgyMTI6d01EN0x6bFFFMmlZSk9nUHNacXll');
+        script.setAttribute('data-agent-id', 'v2_agt_80jV_9EA');
+        script.setAttribute('data-name', 'did-agent');
+        script.setAttribute('data-monitor', 'true');
+        script.setAttribute('data-orientation', 'horizontal');
+        script.setAttribute('data-position', 'right');
+        
+        script.onload = () => {
+            console.log('D-ID Agent script loaded successfully');
+        };
+        
+        script.onerror = () => {
+            console.error('Failed to load D-ID Agent script');
+        };
+        
+        document.body.appendChild(script);
+    </script>
 </body>
 </html>
 """
 
-# 플로팅 AI 어시스턴트 렌더링 (보이지 않지만 작동)
-components.html(did_html, height=1)
-
-# Footer
-st.markdown("---")
-st.caption("📧 문의: 미래융합대학 헬스케어융합학부 박대근 교수 | 🌐 전공 홈페이지: biz.cha.ac.kr")
+# 실제로 렌더링 (중요!)
+components.html(did_html, height=800, scrolling=False)
 
 
 
