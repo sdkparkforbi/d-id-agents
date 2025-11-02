@@ -772,7 +772,8 @@ did_html = """
 """
 
 # 실제로 렌더링 (중요!)
-components.html(did_html, height=800, scrolling=False)
+components.html(did_html, height=150, scrolling=False)
+
 
 
 
