@@ -735,10 +735,11 @@ did_html = """
 """
 
 # 플로팅 AI 어시스턴트 렌더링 (보이지 않지만 작동)
-components.html(did_html, height=0)
+components.html(did_html, height=1)
 
 # Footer
 st.markdown("---")
 st.caption("📧 문의: 미래융합대학 헬스케어융합학부 박대근 교수 | 🌐 전공 홈페이지: biz.cha.ac.kr")
+
 
 
