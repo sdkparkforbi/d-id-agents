@@ -215,11 +215,89 @@
             margin: 5px 0;
         }
 
-        #did-agent {
-            position: fixed !important;
-            bottom: 20px !important;
-            right: 20px !important;
-            z-index: 9999 !important;
+        /* HeyGen Avatar PIP Widget Styles */
+        #heygen-pip-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        #heygen-pip {
+            width: 380px;
+            height: 550px;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            background: #1a1a2e;
+            transition: all 0.3s ease;
+        }
+
+        #heygen-pip.minimized {
+            display: none;
+        }
+
+        #heygen-pip-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            transition: transform 0.2s ease;
+        }
+
+        #heygen-pip-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        #heygen-pip.minimized + #heygen-pip-toggle {
+            display: flex;
+        }
+
+        #heygen-pip-close {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #ef4444;
+            border: none;
+            cursor: pointer;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: background 0.2s;
+        }
+
+        #heygen-pip-close:hover {
+            background: #dc2626;
+        }
+
+        #heygen-pip-label {
+            position: absolute;
+            top: -35px;
+            left: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
         }
 
         @media (max-width: 768px) {
@@ -228,6 +306,11 @@
             .tab-content { padding: 20px; }
             .columns, .columns-2, .columns-3, .columns-4 { 
                 grid-template-columns: 1fr; 
+            }
+            
+            #heygen-pip {
+                width: 300px;
+                height: 450px;
             }
         }
     </style>
@@ -1033,52 +1116,50 @@
         <p style="margin-top: 15px; opacity: 0.8;">© 2025 차의과학대학교 경영학전공. All rights reserved.</p>
     </footer>
 
-    <!-- D-ID Agent -->
-    <script type="module">
-        console.log('🚀 D-ID Agent 초기화 시작...');
-        
-        const script = document.createElement('script');
-        script.type = 'module';
-        script.src = 'https://agent.d-id.com/v2/index.js';
-        script.setAttribute('data-mode', 'fabio');
-        script.setAttribute('data-client-key', 'Z29vZ2xlLW9hdXRoMnwxMTI3NjQ3MzA0NTM3NjA0MTgyMTI6d01EN0x6bFFFMmlZSk9nUHNacXll');
-        script.setAttribute('data-agent-id', 'v2_agt_ijRjZY-m');
-        script.setAttribute('data-name', 'did-agent');
-        script.setAttribute('data-monitor', 'true');
-        script.setAttribute('data-orientation', 'horizontal');
-        script.setAttribute('data-position', 'right');
-        
-        script.onload = () => {
-            console.log('✅ D-ID Agent 로딩 완료!');
-        };
-        
-        script.onerror = (e) => {
-            console.error('❌ D-ID Agent 로딩 실패:', e);
-        };
-        
-        document.body.appendChild(script);
-    </script>
- 
+    <!-- HeyGen Avatar PIP Widget (우측 하단) -->
+    <div id="heygen-pip-container">
+        <span id="heygen-pip-label">🤖 AI 상담</span>
+        <button id="heygen-pip-close" onclick="toggleHeyGenPIP()">✕</button>
+        <iframe 
+            id="heygen-pip" 
+            src="https://dapper-moonbeam-54a024.netlify.app"
+            allow="camera; microphone; autoplay; clipboard-write"
+        ></iframe>
+    </div>
+    <button id="heygen-pip-toggle" onclick="toggleHeyGenPIP()">🤖</button>
+
     <script>
         function openTab(tabId) {
-            // 모든 탭 컨텐츠 숨기기
             const contents = document.getElementsByClassName('tab-content');
             for (let content of contents) {
                 content.classList.remove('active');
             }
             
-            // 모든 탭 버튼 비활성화
             const tabs = document.getElementsByClassName('tab');
             for (let tab of tabs) {
                 tab.classList.remove('active');
             }
             
-            // 선택된 탭 표시
             document.getElementById(tabId).classList.add('active');
             event.target.classList.add('active');
             
-            // 스크롤 맨 위로
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleHeyGenPIP() {
+            const pip = document.getElementById('heygen-pip');
+            const label = document.getElementById('heygen-pip-label');
+            const closeBtn = document.getElementById('heygen-pip-close');
+            
+            pip.classList.toggle('minimized');
+            
+            if (pip.classList.contains('minimized')) {
+                label.style.display = 'none';
+                closeBtn.style.display = 'none';
+            } else {
+                label.style.display = 'block';
+                closeBtn.style.display = 'flex';
+            }
         }
     </script>
 </body>
