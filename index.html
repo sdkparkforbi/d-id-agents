@@ -1,1169 +1,289 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <link rel="icon" href="data:,">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>경영학전공 1문 1답</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+import {
+  AvatarQuality,
+  StreamingEvents,
+  VoiceChatTransport,
+  VoiceEmotion,
+  StartAvatarRequest,
+  STTProvider,
+  ElevenLabsModel,
+  TaskType,
+} from "@heygen/streaming-avatar";
+import { useEffect, useRef, useState } from "react";
+import { useMemoizedFn, useUnmount } from "ahooks";
+
+import { useStreamingAvatarSession } from "./logic/useStreamingAvatarSession";
+import { StreamingAvatarProvider, StreamingAvatarSessionState } from "./logic";
+
+import { AVATARS } from "@/app/lib/constants";
+
+const DEFAULT_CONFIG: StartAvatarRequest = {
+  quality: AvatarQuality.Low,
+  avatarName: AVATARS[0].avatar_id,
+  voice: {
+    rate: 1.5,
+    emotion: VoiceEmotion.EXCITED,
+    model: ElevenLabsModel.eleven_flash_v2_5,
+  },
+  language: "ko",
+  voiceChatTransport: VoiceChatTransport.WEBSOCKET,
+  sttSettings: {
+    provider: STTProvider.DEEPGRAM,
+  },
+};
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+function InteractiveAvatar() {
+  const {
+    initAvatar,
+    startAvatar,
+    stopAvatar,
+    sessionState,
+    stream,
+    avatarRef,
+  } = useStreamingAvatarSession();
+
+  const [config] = useState<StartAvatarRequest>(DEFAULT_CONFIG);
+  const [inputText, setInputText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [isListening, setIsListening] = useState(false);
+  const mediaStream = useRef<HTMLVideoElement>(null);
+  const isProcessingRef = useRef(false);
+
+  async function fetchAccessToken() {
+    try {
+      const response = await fetch("/api/get-access-token", {
+        method: "POST",
+      });
+      const token = await response.text();
+      console.log("Access Token:", token);
+      return token;
+    } catch (error) {
+      console.error("Error fetching access token:", error);
+      throw error;
+    }
+  }
+
+  const callOpenAI = async (message: string, history: ChatMessage[]) => {
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: message,
+          history: history,
+        }),
+      });
+      const data = await response.json();
+      return data.reply;
+    } catch (error) {
+      console.error("OpenAI API error:", error);
+      return "죄송합니다. 일시적인 오류가 발생했습니다. 다시 말씀해 주세요.";
+    }
+  };
+
+  const speakWithAvatar = async (text: string) => {
+    if (!avatarRef.current || !text) return;
+    
+    try {
+      await avatarRef.current.speak({
+        text: text,
+        taskType: TaskType.TALK,
+      });
+    } catch (error) {
+      console.error("Avatar speak error:", error);
+    }
+  };
+
+  const handleUserSpeech = useMemoizedFn(async (transcript: string) => {
+    if (!transcript.trim() || isProcessingRef.current) return;
+    
+    isProcessingRef.current = true;
+    setIsLoading(true);
+    
+    console.log("User said:", transcript);
+    
+    const newHistory = [...chatHistory, { role: "user" as const, content: transcript }];
+    setChatHistory(newHistory);
+    
+    const reply = await callOpenAI(transcript, chatHistory);
+    console.log("OpenAI reply:", reply);
+    
+    setChatHistory([...newHistory, { role: "assistant" as const, content: reply }]);
+    
+    await speakWithAvatar(reply);
+    
+    setIsLoading(false);
+    isProcessingRef.current = false;
+  });
+
+  const startSession = useMemoizedFn(async () => {
+    try {
+      const newToken = await fetchAccessToken();
+      const avatarInstance = initAvatar(newToken);
+
+      avatarInstance.on(StreamingEvents.STREAM_READY, (event) => {
+        console.log(">>>>> Stream ready:", event.detail);
+      });
+      
+      avatarInstance.on(StreamingEvents.STREAM_DISCONNECTED, () => {
+        console.log("Stream disconnected");
+      });
+
+      avatarInstance.on(StreamingEvents.USER_START, () => {
+        console.log("User started speaking");
+        setIsListening(true);
+      });
+
+      avatarInstance.on(StreamingEvents.USER_STOP, () => {
+        console.log("User stopped speaking");
+        setIsListening(false);
+      });
+
+      avatarInstance.on(StreamingEvents.USER_END_MESSAGE, (event) => {
+        const finalMessage = event.detail?.message;
+        console.log("User final message:", finalMessage);
+        if (finalMessage && finalMessage.trim()) {
+          handleUserSpeech(finalMessage);
         }
+      });
 
-        body {
-            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
-        }
+      await startAvatar(config);
 
-        header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 60px 20px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+      await avatarInstance.startVoiceChat();
+      console.log("Voice chat started - using OpenAI for responses");
 
-        header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
+      setTimeout(async () => {
+        const greeting = "안녕하세요! 차의과학대학교 경영학전공 AI 상담사 경영이입니다. 전공 선택, 취업, 커리큘럼 등 궁금한 점을 편하게 물어보세요!";
+        await speakWithAvatar(greeting);
+        setChatHistory([{ role: "assistant", content: greeting }]);
+      }, 1500);
+      
+    } catch (error) {
+      console.error("Error starting avatar session:", error);
+    }
+  });
 
-        header p {
-            font-size: 1.2em;
-            opacity: 0.95;
-        }
+  const handleSendMessage = useMemoizedFn(async () => {
+    const textToSend = inputText.trim();
+    if (!textToSend || !avatarRef.current || isLoading) return;
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
+    setInputText("");
+    setIsLoading(true);
 
-        .tabs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 0;
-            border-bottom: 3px solid #ddd;
-            overflow-x: auto;
-            padding-bottom: 0;
-        }
+    const newHistory = [...chatHistory, { role: "user" as const, content: textToSend }];
+    setChatHistory(newHistory);
 
-        .tab {
-            padding: 15px 25px;
-            background: white;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            border-radius: 8px 8px 0 0;
-            transition: all 0.3s;
-            white-space: nowrap;
-            border: 2px solid transparent;
-            border-bottom: none;
-        }
+    const reply = await callOpenAI(textToSend, chatHistory);
 
-        .tab:hover {
-            background: #f0f0f0;
-            transform: translateY(-2px);
-        }
+    setChatHistory([...newHistory, { role: "assistant" as const, content: reply }]);
 
-        .tab.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
+    await speakWithAvatar(reply);
 
-        .tab-content {
-            display: none;
-            background: white;
-            padding: 40px;
-            border-radius: 0 15px 15px 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 40px;
-        }
+    setIsLoading(false);
+  });
 
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s;
-        }
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+  useUnmount(() => {
+    stopAvatar();
+  });
 
-        .tab-content h2 {
-            font-size: 1.8em;
-            margin-bottom: 30px;
-            color: #2c3e50;
-        }
+  useEffect(() => {
+    if (stream && mediaStream.current) {
+      mediaStream.current.srcObject = stream;
+      mediaStream.current.onloadedmetadata = () => {
+        mediaStream.current!.play();
+      };
+    }
+  }, [mediaStream, stream]);
 
-        .tab-content h3 {
-            font-size: 1.3em;
-            margin: 25px 0 15px;
-            color: #34495e;
-        }
-
-        .tab-content ul {
-            margin-left: 25px;
-            margin-top: 15px;
-        }
-
-        .tab-content li {
-            margin-bottom: 10px;
-        }
-
-        .columns {
-            display: grid;
-            gap: 30px;
-            margin: 30px 0;
-        }
-
-        .columns-2 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
-        .columns-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-        .columns-4 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-
-        .info-box {
-            padding: 25px;
-            border-radius: 12px;
-            background: #e7f3ff;
-            border-left: 4px solid #2196f3;
-        }
-
-        .success-box {
-            padding: 25px;
-            border-radius: 12px;
-            background: #d4edda;
-            border-left: 4px solid #28a745;
-        }
-
-        .warning-box {
-            padding: 25px;
-            border-radius: 12px;
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-        }
-
-        .error-box {
-            padding: 25px;
-            border-radius: 12px;
-            background: #f8d7da;
-            border-left: 4px solid #dc3545;
-        }
-
-        .metric {
-            text-align: center;
-            padding: 20px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .metric-value {
-            font-size: 2.5em;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 5px;
-        }
-
-        .metric-label {
-            font-size: 1em;
-            color: #666;
-        }
-
-        .metric-delta {
-            font-size: 0.9em;
-            color: #28a745;
-            margin-top: 5px;
-        }
-
-        .progress {
-            background: #e9ecef;
-            border-radius: 10px;
-            height: 30px;
-            margin: 15px 0;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .progress-bar {
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            transition: width 0.6s ease;
-        }
-
-        footer {
-            background: #2c3e50;
-            color: white;
-            text-align: center;
-            padding: 30px 20px;
-            margin-top: 60px;
-        }
-
-        footer p {
-            margin: 5px 0;
-        }
-
-        /* HeyGen Avatar PIP Widget Styles */
-        #heygen-pip-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 9999;
-        }
-
-        #heygen-pip {
-            width: 380px;
-            height: 214px;  /* 16:9 비율: 380 ÷ 16 × 9 = 214 */
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            background: transparent;  /* 검은 배경도 투명으로 */
-            transition: all 0.3s ease;
-        }
-        
-
-        #heygen-pip.minimized {
-            display: none;
-        }
-
-        #heygen-pip-toggle {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
-            z-index: 10000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            transition: transform 0.2s ease;
-        }
-
-        #heygen-pip-toggle:hover {
-            transform: scale(1.1);
-        }
-
-        #heygen-pip.minimized + #heygen-pip-toggle {
-            display: flex;
-        }
-
-        #heygen-pip-close {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #ef4444;
-            border: none;
-            cursor: pointer;
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            transition: background 0.2s;
-        }
-
-        #heygen-pip-close:hover {
-            background: #dc2626;
-        }
-
-        #heygen-pip-label {
-            position: absolute;
-            top: -35px;
-            left: 0;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        @media (max-width: 768px) {
-            header h1 { font-size: 1.8em; }
-            .tab { padding: 10px 15px; font-size: 14px; }
-            .tab-content { padding: 20px; }
-            .columns, .columns-2, .columns-3, .columns-4 { 
-                grid-template-columns: 1fr; 
-            }
+  return (
+    <div className="w-full h-full flex flex-col">
+      {sessionState === StreamingAvatarSessionState.CONNECTED && stream ? (
+        <div className="flex-1 relative flex flex-col">
+          <div className="relative flex-shrink-0">
+            <video
+              ref={mediaStream}
+              autoPlay
+              playsInline
+              style={{ display: "block", width: "100%", height: "auto" }}
+            />
             
-            #heygen-pip {
-                width: 300px;
-                height: 169px;  /* 16:9 비율: 300 ÷ 16 × 9 = 169 */
-            }
-        }
+            {/* 종료 버튼 (안쪽 X) */}
+            <button
+              className="absolute top-2 right-2 w-7 h-7 bg-black/50 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs transition-all"
+              title="종료"
+              onClick={() => stopAvatar()}
+            >
+              ✕
+            </button>
 
-    </style>
-</head>
-<body>
-    <header>
-        <h1>🎓 경영학전공 1문 1답</h1>
-        <p>미래융합대학 헬스케어융합학부 | 박대근 교수</p>
-    </header>
+            {/* 음성 인식 상태 표시 */}
+            <div className="absolute bottom-2 left-2 flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${isListening ? 'bg-red-500 animate-pulse' : isLoading ? 'bg-yellow-500' : 'bg-green-500'}`} />
+              <span className="text-white text-xs bg-black/50 px-2 py-1 rounded">
+                {isListening ? '듣는 중...' : isLoading ? '응답 생성 중...' : '말씀하세요'}
+              </span>
+            </div>
+          </div>
 
-    <div class="container">
-        <div class="tabs">
-            <button class="tab active" onclick="openTab('tab1')">연구분야</button>
-            <button class="tab" onclick="openTab('tab2')">통합교육</button>
-            <button class="tab" onclick="openTab('tab3')">취업전망</button>
-            <button class="tab" onclick="openTab('tab4')">세부전공</button>
-            <button class="tab" onclick="openTab('tab5')">미래가치</button>
-            <button class="tab" onclick="openTab('tab6')">팀프로젝트</button>
-            <button class="tab" onclick="openTab('tab7')">바이오융합</button>
-            <button class="tab" onclick="openTab('tab8')">차대만의강점</button>
-            <button class="tab" onclick="openTab('tab9')">졸업생진로</button>
-            <button class="tab" onclick="openTab('tab10')">예술경영</button>
-            <button class="tab" onclick="openTab('tab11')">디지털vs AI</button>
-            <button class="tab" onclick="openTab('tab12')">미디어융합</button>
-            <button class="tab" onclick="openTab('tab13')">수포자OK</button>
-            <button class="tab" onclick="openTab('tab14')">영상광고</button>
+          {/* 텍스트 입력 */}
+          <div className="p-2 bg-zinc-800 border-t border-zinc-700">
+            <div className="flex gap-2">
+              <input
+                className="flex-1 px-3 py-2 bg-zinc-700 text-white text-sm rounded-lg border border-zinc-600 focus:outline-none focus:border-purple-500 disabled:opacity-50"
+                disabled={isLoading}
+                placeholder="또는 텍스트로 질문하세요..."
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyPress={handleKeyPress}
+              />
+              <button
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-zinc-600 text-white text-sm rounded-lg transition-colors"
+                disabled={isLoading || !inputText.trim()}
+                onClick={() => handleSendMessage()}
+              >
+                {isLoading ? "..." : "전송"}
+              </button>
+            </div>
+          </div>
         </div>
-
-        <!-- 탭 1: 연구분야 -->
-        <div id="tab1" class="tab-content active">
-            <h2>🔬 경영학전공에서는 실제로 어떤 연구들을 다루나요?</h2>
-            
-            <div class="columns columns-2">
-                <div>
-                    <h3>📚 연구 분야</h3>
-                    <div class="info-box">
-                        <strong>경영학 핵심 이론</strong><br>
-                        - 경영기획: 기업전략, 조직관리 등<br>
-                        - 마케팅: 소비자 행동, 브랜드 전략, 서비스 마케팅 등<br>
-                        - 회계재무: 기업가치 평가, 회계투명성, 투자의사결정 등<br><br>
-                        
-                        <strong>최신 트렌드</strong><br>
-                        - 경영기획: ESG 평가지표 개발, 기업지배구조 개선<br>
-                        - 마케팅: AI 서비스 로봇 수용도, MZ세대 SNS 전략<br>
-                        - 회계재무: 제약·바이오 R&D 회계처리, 공시정보 신뢰성
-                    </div>
-                </div>
-                
-                <div>
-                    <h3>🏆 교수진 연구 성과</h3>
-                    <div class="success-box">
-                        <strong>국내외 저널 게재</strong><br>
-                        - 국제: Psychology & Marketing | Applied Economics Letters | Journal of Forecasting | International Journal of Hospitality Management<br>
-                        - 국내: 회계학연구 | 경영학연구 | 한국언론학보 | 한국방송학보 | 고객만족경영연구 | 상품학연구<br><br>
-                        
-                        <strong>주요 연구 주제</strong><br>
-                        - 경영기획: ESG 뉴스의 기업가치 영향 분석 등<br>
-                        - 마케팅: K-콘텐츠의 글로벌 시장 전략, 디지털 리터러시와 소비자 참여 등<br>
-                        - 회계재무: 주주권 행사와 이익조정, 신용평가와 재무보고 적시성 등<br>
-                        - 융합분야: AI융합연구방법론, AI를 활용한 시계열 예측, AI 지능형 봇 개발 등
-                    </div>
-                </div>
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          {sessionState === StreamingAvatarSessionState.CONNECTING ? (
+            <div className="flex flex-col items-center gap-3 text-white">
+              <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm">연결 중...</span>
             </div>
+          ) : (
+            <button
+              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full text-base font-medium transition-all shadow-lg hover:shadow-xl"
+              onClick={startSession}
+            >
+              💬 상담 시작
+            </button>
+          )}
         </div>
-
-        <!-- 탭 2: 통합교육 -->
-        <div id="tab2" class="tab-content">
-            <h2>🤝 왜 마케팅이나 인사관리 같은 수업도 들어야 하나요?</h2>
-            
-            <div class="warning-box" style="margin-bottom: 30px;">
-                <strong>💡 기업 경영 = 퍼즐 맞추기</strong><br>
-                한 조각만으로는 전체 그림을 볼 수 없어요!
-            </div>
-            
-            <div class="columns columns-3">
-                <div class="info-box">
-                    <strong>재무 전문가도</strong><br>
-                    - 신규 사업 시장성 평가<br>
-                    - 마케팅 ROI 분석<br>
-                    - 투자 타당성 검토
-                </div>
-                
-                <div class="success-box">
-                    <strong>회계사도</strong><br>
-                    - 인건비 구조 이해<br>
-                    - 원가 구조 분석<br>
-                    - 부서별 예산 검토
-                </div>
-                
-                <div class="error-box">
-                    <strong>실무 협업</strong><br>
-                    - 재무팀 ↔ 마케팅팀<br>
-                    - 전략팀 ↔ 운영팀<br>
-                    - 크로스펑션 프로젝트
-                </div>
-            </div>
-            
-            <h3>🎯 통합 교육 프로그램</h3>
-            <ul>
-                <li><strong>액션러닝</strong>: 실제 기업 문제 해결</li>
-                <li><strong>케이스스터디</strong>: 나이키, 삼성 등 실제 사례 분석</li>
-                <li><strong>협력기관</strong>: 한국조세재정연구원, 국회예산정책처, 금융감독원</li>
-            </ul>
-        </div>
-
-        <!-- 탭 3: 취업전망 -->
-        <div id="tab3" class="tab-content">
-            <h2>💼 경영학만 전공해도 취업이 되나요?</h2>
-            
-            <div class="columns columns-2">
-                <div>
-                    <div class="metric">
-                        <div class="metric-value">88.7%</div>
-                        <div class="metric-label">취업률</div>
-                        <div class="metric-delta">전국 평균 대비 우수</div>
-                    </div>
-                    
-                    <h3>📊 직무별 진출 현황</h3>
-                    <div class="progress">
-                        <div class="progress-bar" style="width: 49%;">경영기획 48.9%</div>
-                    </div>
-                    <div class="progress">
-                        <div class="progress-bar" style="width: 21%;">회계세무금융 20.8%</div>
-                    </div>
-                    <div class="progress">
-                        <div class="progress-bar" style="width: 14%;">마케팅 14.0%</div>
-                    </div>
-                </div>
-                
-                <div>
-                    <h3>🏢 기업 규모별</h3>
-                    <div class="info-box">
-                        - <strong>중소기업</strong>: 30.8%<br>
-                        - <strong>외감기업</strong>: 19.5%<br>
-                        - <strong>코스피</strong>: 8.1%<br>
-                        - <strong>코스닥</strong>: 6.3%
-                    </div>
-                </div>
-            </div>
-            
-            <div class="success-box" style="margin-top: 30px;">
-                <strong>✅ 경영학 단일전공만으로도 충분!</strong><br>
-                - 다양한 산업 진출 가능<br>
-                - 복수전공은 차별화 전략 (선택사항)<br>
-                - 스포츠의학 복수전공 시 78조원 스포츠산업 진출 유리
-            </div>
-        </div>
-
-        <!-- 탭 4: 세부전공 -->
-        <div id="tab4" class="tab-content">
-            <h2>📚 경영학 안에도 세부 전공이 있나요?</h2>
-            
-            <h3>경영학 세부전공 분야</h3>
-            
-            <div class="columns columns-3">
-                <div class="info-box">
-                    <strong>🎯 경영기획</strong><br>
-                    - 기업 전략 수립<br>
-                    - 조직 설계<br>
-                    - ESG 경영<br>
-                    - 진로: 전략기획, 경영컨설팅
-                </div>
-                
-                <div class="info-box">
-                    <strong>📈 마케팅</strong><br>
-                    - 소비자 행동 분석<br>
-                    - 브랜드 관리<br>
-                    - 디지털 마케팅<br>
-                    - 진로: 마케팅매니저, 브랜드매니저
-                </div>
-                
-                <div class="info-box">
-                    <strong>💰 회계재무</strong><br>
-                    - 재무제표 분석<br>
-                    - 투자 의사결정<br>
-                    - 리스크 관리<br>
-                    - 진로: 회계사, 애널리스트, 펀드매니저
-                </div>
-            </div>
-
-            <h3>🏥 차의과학대 특화 분야</h3>
-            <div class="columns columns-2">
-                <div class="success-box">
-                    <strong>헬스케어 비즈니스</strong><br>
-                    - 의료서비스 경영<br>
-                    - 의료관광<br>
-                    - 바이오산업 분석
-                </div>
-                
-                <div class="success-box">
-                    <strong>비즈니스 애널리틱스</strong><br>
-                    - 경영빅데이터 분석<br>
-                    - 건강보험공단 데이터 활용<br>
-                    - AI 기반 의사결정
-                </div>
-            </div>
-        </div>
-
-        <!-- 탭 5: 미래가치 -->
-        <div id="tab5" class="tab-content">
-            <h2>🔮 경영학이 미래에도 여전히 중요할까요?</h2>
-            
-            <div class="error-box" style="margin-bottom: 30px;">
-                <strong>🚀 오히려 더 중요해집니다!</strong>
-            </div>
-            
-            <div class="columns columns-2">
-                <div>
-                    <h3>AI 시대에도 필요한 이유</h3>
-                    <div class="info-box">
-                        <strong>기술 ≠ 비즈니스</strong><br>
-                        - AI/빅데이터를 비즈니스로 전환<br>
-                        - 기술 이해 + 사업모델 설계<br>
-                        - 인간 중심 가치 창출<br><br>
-                        
-                        <strong>경영 전문가 역할</strong><br>
-                        - 전략적 의사결정<br>
-                        - 이해관계자 조정<br>
-                        - 윤리적 경영 판단
-                    </div>
-                </div>
-                
-                <div>
-                    <h3>미래 대비 연구</h3>
-                    <div class="success-box">
-                        <strong>최신 연구 주제</strong><br>
-                        - 생성형 AI 활용 ESG 분석<br>
-                        - 디지털 전환 시대 소비자 행동<br>
-                        - 헬스케어 디지털 혁신<br><br>
-                        
-                        <strong>실제 현황</strong><br>
-                        - 미국 의료시스템 92% 디지털 혁신 추진<br>
-                        - AI 기반 경영 의사결정 확산<br>
-                        - ESG 경영 의무화 추세
-                    </div>
-                </div>
-            </div>
-            
-            <div class="warning-box" style="margin-top: 30px;">
-                <strong>📍 경영학의 보편성</strong><br>
-                - 기업, 병원, 학교, NGO 모든 조직 적용 가능<br>
-                - 창업부터 대기업까지 필수 지식<br>
-                - 미래 헬스케어 리더 양성 목표
-            </div>
-        </div>
-
-        <!-- 탭 6: 팀프로젝트 -->
-        <div id="tab6" class="tab-content">
-            <h2>👥 경영학과는 팀플이 많다고 하던데, 정말인가요?</h2>
-            
-            <div class="success-box" style="margin-bottom: 30px;">
-                <strong>✅ 맞아요! 팀플과 발표가 많습니다</strong>
-            </div>
-            
-            <div class="columns columns-2">
-                <div>
-                    <h3>🤔 왜 팀플이 많을까?</h3>
-                    <div class="info-box">
-                        <strong>현실 반영</strong><br>
-                        - 실제 기업 = 팀워크<br>
-                        - 크로스펑션 협업 필수<br>
-                        - 프로젝트 기반 업무<br><br>
-                        
-                        <strong>성공 사례</strong><br>
-                        - 영화감독 + 프로듀서<br>
-                        - 창업가 + 공동창업팀<br>
-                        - CEO + 경영진
-                    </div>
-                </div>
-                
-                <div>
-                    <h3>🎯 팀플을 통해 얻는 것</h3>
-                    <div class="warning-box">
-                        <strong>핵심 역량 개발</strong><br>
-                        - 의사소통 능력 ↗️<br>
-                        - 문제해결 능력 ↗️<br>
-                        - 리더십 & 팔로워십 ↗️<br>
-                        - 프레젠테이션 스킬 ↗️<br><br>
-                        
-                        <strong>실전 경험</strong><br>
-                        - 기업경영사례 경진대회<br>
-                        - 액션러닝 프로젝트<br>
-                        - 취업 시 큰 강점
-                    </div>
-                </div>
-            </div>
-            
-            <div class="error-box" style="margin-top: 30px;">
-                <strong>💡 교수님 Tip</strong><br>
-                자기주도적 액션러닝으로 현장 문제 해결 능력을 기릅니다!
-            </div>
-        </div>
-
-        <!-- 탭 7: 바이오융합 -->
-        <div id="tab7" class="tab-content">
-            <h2>🧬 바이오나 의약학 전공과 경영학을 같이 하면 뭐가 좋나요?</h2>
-            
-            <div class="success-box" style="margin-bottom: 30px;">
-                <strong>💎 바이오 + 경영 = 최강 조합!</strong>
-            </div>
-            
-            <div class="columns columns-2">
-                <div>
-                    <h3>📊 바이오산업 특성</h3>
-                    <div class="info-box">
-                        <strong>왜 경영이 중요한가?</strong><br>
-                        - R&D 비용 막대 (수천억)<br>
-                        - 제품 출시까지 10년+<br>
-                        - 전략적 포트폴리오 관리 필수<br>
-                        - 규제 대응 & 파이낸싱 중요
-                    </div>
-                </div>
-                
-                <div>
-                    <h3>🎯 졸업생 성과</h3>
-                    <div class="metric">
-                        <div class="metric-value">24.9%</div>
-                        <div class="metric-label">바이오헬스케어 진출</div>
-                        <div class="metric-delta">51명</div>
-                    </div>
-                    <div class="warning-box">
-                        <strong>진출 분야</strong><br>
-                        - 제약회사 경영기획<br>
-                        - 바이오 스타트업 CEO<br>
-                        - 헬스케어 제품 매니저<br>
-                        - 임상시험 프로젝트 관리
-                    </div>
-                </div>
-            </div>
-            
-            <h3>🔬 관련 연구 & 교육</h3>
-            <div class="columns columns-3">
-                <div class="info-box">
-                    <strong>융합 과목</strong><br>
-                    - 바이오기술 혁신전략<br>
-                    - 제약마케팅<br>
-                    - 바이오기업 가치평가
-                </div>
-                
-                <div class="success-box">
-                    <strong>교수진 연구</strong><br>
-                    - 제약바이오 ESG 경영<br>
-                    - 삼성바이오로직스 사례<br>
-                    - 바이오기업 회계처리
-                </div>
-                
-                <div class="error-box">
-                    <strong>차별화 포인트</strong><br>
-                    - 타 대학 대비 독보적<br>
-                    - 바이오 이해 + 경영 감각<br>
-                    - 높은 연봉 & 성장성
-                </div>
-            </div>
-        </div>
-
-        <!-- 탭 8: 차대만의강점 -->
-        <div id="tab8" class="tab-content">
-            <h2>🏥 차의과학대 경영학과만의 특별한 점이 있나요?</h2>
-            
-            <div class="error-box" style="margin-bottom: 30px;">
-                <strong>🌟 바이오헬스케어 특화 경영학!</strong>
-            </div>
-            
-            <div class="columns columns-3">
-                <div>
-                    <h3>🏥 차병원 네트워크</h3>
-                    <div class="metric">
-                        <div class="metric-value">10.9%</div>
-                        <div class="metric-label">차병원그룹 취업</div>
-                        <div class="metric-delta">24명+</div>
-                    </div>
-                    <div class="info-box">
-                        <strong>계열사 진출</strong><br>
-                        - 차병원 (분당/강남/일산)<br>
-                        - 차바이오텍<br>
-                        - 차메디텍<br>
-                        - 차케어스
-                    </div>
-                </div>
-                
-                <div>
-                    <h3>📚 특화 커리큘럼</h3>
-                    <div class="success-box">
-                        <strong>헬스케어 과목</strong><br>
-                        - 의료경영<br>
-                        - 바이오산업론<br>
-                        - 의료서비스마케팅<br>
-                        - 헬스케어 데이터분석
-                    </div>
-                </div>
-                
-                <div>
-                    <h3>🤝 융합 전공</h3>
-                    <div class="warning-box">
-                        <strong>시너지 조합</strong><br>
-                        - 디지털보건의료<br>
-                        - AI의료데이터<br>
-                        - 바이오식의약학<br>
-                        - 미디어커뮤니케이션
-                    </div>
-                </div>
-            </div>
-            
-            <h3>🔬 연구 네트워크</h3>
-            <div class="info-box">
-                <strong>협력 기관</strong>: 한국조세재정연구원 | 국회예산정책처 | 금융감독원 | 건강보험공단<br><br>
-                <strong>국제 저널 게재</strong>: Psychology & Marketing | 한국방송학보 | 한국언론학보
-            </div>
-        </div>
-
-        <!-- 탭 9: 졸업생진로 -->
-        <div id="tab9" class="tab-content">
-            <h2>🎓 선배들은 주로 어디로 취업하나요?</h2>
-            
-            <div class="columns columns-4">
-                <div class="metric">
-                    <div class="metric-value">88.7%</div>
-                    <div class="metric-label">취업률</div>
-                    <div class="metric-delta">196명</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-value">5.4%</div>
-                    <div class="metric-label">창업</div>
-                    <div class="metric-delta">12명</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-value">5.9%</div>
-                    <div class="metric-label">대학원</div>
-                    <div class="metric-delta">13명</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-value">100%</div>
-                    <div class="metric-label">전체 졸업생</div>
-                    <div class="metric-delta">221명</div>
-                </div>
-            </div>
-            
-            <div class="columns columns-2">
-                <div>
-                    <h3>🏢 산업별 분포</h3>
-                    <div class="info-box">
-                        1️⃣ <strong>바이오헬스케어</strong> - 24.9%<br>
-                        2️⃣ <strong>금융</strong> - 19.5%<br>
-                        3️⃣ <strong>IT</strong> - 19.0%<br>
-                        4️⃣ <strong>차병원그룹</strong> - 10.9%<br>
-                        5️⃣ <strong>기타</strong> - 25.7%
-                    </div>
-                </div>
-                
-                <div>
-                    <h3>💼 직무별 분포</h3>
-                    <div class="warning-box">
-                        1️⃣ <strong>경영기획</strong> - 48.9%<br>
-                        2️⃣ <strong>회계세무금융</strong> - 20.8%<br>
-                        3️⃣ <strong>마케팅</strong> - 14.0%<br>
-                        4️⃣ <strong>기타</strong> - 16.3%
-                    </div>
-                </div>
-            </div>
-            
-            <h3>🌟 주요 취업처</h3>
-            <div class="columns columns-4">
-                <div class="success-box">
-                    <strong>금융/증권</strong><br>
-                    - 하나은행<br>
-                    - SK증권<br>
-                    - 신한은행<br>
-                    - KB국민은행
-                </div>
-                
-                <div class="info-box">
-                    <strong>대기업</strong><br>
-                    - 현대자동차<br>
-                    - 삼성바이오로직스<br>
-                    - 롯데<br>
-                    - CJ올리브영
-                </div>
-                
-                <div class="warning-box">
-                    <strong>IT/플랫폼</strong><br>
-                    - 쿠팡<br>
-                    - 스마일게이트<br>
-                    - 메가존클라우드<br>
-                    - 이랜드
-                </div>
-                
-                <div class="error-box">
-                    <strong>병원/헬스케어</strong><br>
-                    - 세브란스병원<br>
-                    - 강남세브란스<br>
-                    - 차병원 계열<br>
-                    - 제약회사
-                </div>
-            </div>
-        </div>
-
-        <!-- 탭 10: 예술경영 -->
-        <div id="tab10" class="tab-content">
-            <h2>🎨 예술 쪽에 관심이 많은데, 경영학 전공이 도움이 될까요?</h2>
-            
-            <div class="success-box" style="margin-bottom: 30px;">
-                <strong>🎭 문화예술경영 분야로 진출 가능!</strong>
-            </div>
-            
-            <div class="columns columns-2">
-                <div>
-                    <h3>🎯 진로 분야</h3>
-                    <div class="info-box">
-                        <strong>문화예술 직무</strong><br>
-                        - 공연기획자 (PD)<br>
-                        - 미술관 큐레이터<br>
-                        - 문화마케터<br>
-                        - 엔터테인먼트 경영<br>
-                        - 축제/이벤트 기획<br>
-                        - 갤러리 운영
-                    </div>
-                </div>
-                
-                <div>
-                    <h3>💼 실제 취업 사례</h3>
-                    <div class="warning-box">
-                        <strong>졸업생 진출처</strong><br>
-                        - FNC엔터테인먼트<br>
-                        - 환경재단 (서울환경영화제)<br>
-                        - 광고대행사<br>
-                        - 방송사<br>
-                        - 문화재단
-                    </div>
-                </div>
-            </div>
-            
-            <h3>📚 관련 지식 & 연구</h3>
-            <div class="columns columns-3">
-                <div class="success-box">
-                    <strong>활용 과목</strong><br>
-                    - 소비자행동 분석<br>
-                    - SNS 마케팅<br>
-                    - 프로젝트 관리<br>
-                    - 브랜딩 전략
-                </div>
-                
-                <div class="info-box">
-                    <strong>교수진 연구</strong><br>
-                    - 리뷰 효과 분석<br>
-                    - 도시브랜딩<br>
-                    - 관광심리학<br>
-                    - K-콘텐츠 해외진출
-                </div>
-                
-                <div class="error-box">
-                    <strong>왜 필요한가?</strong><br>
-                    - 예술도 관객이 있어야 함<br>
-                    - 수익모델 설계 필수<br>
-                    - 마케팅 없인 생존 불가<br>
-                    - 경영 = 예술의 날개
-                </div>
-            </div>
-        </div>
-
-        <!-- 탭 11: 디지털vs AI -->
-        <div id="tab11" class="tab-content">
-            <h2>🤖 디지털보건의료 vs AI의료데이터, 뭘 같이 공부하는 게 나을까요?</h2>
-            
-            <div class="warning-box" style="margin-bottom: 30px;">
-                <strong>🎯 두 분야 모두 매력적이지만 방향이 다릅니다!</strong>
-            </div>
-            
-            <div class="columns columns-2">
-                <div>
-                    <h3>🏥 디지털보건의료 + 경영</h3>
-                    <div class="info-box">
-                        <strong>특징</strong><br>
-                        - 헬스케어 비즈니스 분야<br>
-                        - 서비스 기획 중심<br>
-                        - 사람과의 소통 중요<br><br>
-                        
-                        <strong>진로</strong><br>
-                        - 병원 경영기획<br>
-                        - 디지털 헬스 서비스 기획<br>
-                        - 의료기기 마케팅<br>
-                        - 헬스케어 스타트업<br><br>
-                        
-                        <strong>관련 연구</strong><br>
-                        - 의료서비스 품질<br>
-                        - AI 로봇 수용성<br>
-                        - 환자 경험 개선
-                    </div>
-                </div>
-                
-                <div>
-                    <h3>📊 AI의료데이터 + 경영</h3>
-                    <div class="success-box">
-                        <strong>특징</strong><br>
-                        - 비즈니스 애널리틱스 분야<br>
-                        - 데이터 분석 중심<br>
-                        - 정량적 의사결정<br><br>
-                        
-                        <strong>진로</strong><br>
-                        - 헬스케어 데이터 분석가<br>
-                        - 보험 리스크 분석<br>
-                        - 임상데이터 관리<br>
-                        - AI 서비스 기획<br><br>
-                        
-                        <strong>관련 연구</strong><br>
-                        - ESG 빅데이터 분석<br>
-                        - 예측모형 개발<br>
-                        - 리얼월드데이터 활용
-                    </div>
-                </div>
-            </div>
-            
-            <div class="error-box" style="margin-top: 30px;">
-                <strong>💡 선택 기준</strong><br>
-                - 사람과 소통 좋아함 → 디지털보건의료<br>
-                - 데이터 분석 좋아함 → AI의료데이터<br>
-                - 둘 다 경영학과 시너지 극대화!
-            </div>
-        </div>
-
-        <!-- 탭 12: 미디어융합 -->
-        <div id="tab12" class="tab-content">
-            <h2>📺 미디어커뮤니케이션이랑 경영학을 같이 하면 어떤가요?</h2>
-            
-            <div class="success-box" style="margin-bottom: 30px;">
-                <strong>🎯 완벽한 조합! 미디어 경영 전문가로 성장</strong>
-            </div>
-            
-            <div class="columns columns-2">
-                <div>
-                    <h3>💼 진로 분야</h3>
-                    <div class="info-box">
-                        <strong>미디어 경영 직무</strong><br>
-                        - IR (투자자 관계)<br>
-                        - PR (홍보)<br>
-                        - 콘텐츠 비즈니스<br>
-                        - 브랜드 커뮤니케이션<br>
-                        - 디지털 마케팅<br>
-                        - 인플루언서 마케팅
-                    </div>
-                </div>
-                
-                <div>
-                    <h3>🌟 시대적 트렌드</h3>
-                    <div class="warning-box">
-                        <strong>왜 중요한가?</strong><br>
-                        - 모든 기업 = 미디어 기업<br>
-                        - 유튜브/인스타 자체 채널 운영<br>
-                        - 스토리텔링 = 핵심 역량<br>
-                        - 콘텐츠 = 새로운 자산
-                    </div>
-                </div>
-            </div>
-            
-            <h3>📚 관련 연구 & 강점</h3>
-            <div class="columns columns-3">
-                <div class="success-box">
-                    <strong>교수진 연구</strong><br>
-                    - SNS 마케팅 효과<br>
-                    - 온라인 리뷰 영향력<br>
-                    - K-콘텐츠 해외진출<br>
-                    - 인플루언서 ROI
-                </div>
-                
-                <div class="info-box">
-                    <strong>핵심 역량</strong><br>
-                    - 스토리텔링 능력<br>
-                    - 경영 감각<br>
-                    - 데이터 분석력<br>
-                    - 크리에이티브
-                </div>
-                
-                <div class="error-box">
-                    <strong>취업처</strong><br>
-                    - 광고대행사<br>
-                    - 방송사 전략팀<br>
-                    - 기업 커뮤니케이션실<br>
-                    - MCN 기업
-                </div>
-            </div>
-        </div>
-
-        <!-- 탭 13: 수포자OK -->
-        <div id="tab13" class="tab-content">
-            <h2>😰 수학이나 회계를 전혀 모르는데 따라갈 수 있을까요?</h2>
-            
-            <div class="success-box" style="margin-bottom: 30px;">
-                <strong>😊 걱정 마세요! 기초부터 차근차근 가르칩니다</strong>
-            </div>
-            
-            <div class="columns columns-2">
-                <div>
-                    <h3>📚 단계별 학습</h3>
-                    <div class="info-box">
-                        <strong>1학년 기초 과목</strong><br>
-                        - 회계원리: 자산=부채+자본부터<br>
-                        - 경영통계: 평균, 분산부터<br>
-                        - 경영학원론: 큰 그림부터<br><br>
-                        
-                        <strong>필요 수학 수준</strong><br>
-                        - 고등학교 수준이면 충분<br>
-                        - 복잡한 미적분 불필요<br>
-                        - 기본 사칙연산 + α
-                    </div>
-                </div>
-                
-                <div>
-                    <h3>🤝 지원 프로그램</h3>
-                    <div class="warning-box">
-                        <strong>학습 지원</strong><br>
-                        - 교수학습지원센터 튜터링<br>
-                        - 선배 멘토링 프로그램<br>
-                        - SPSS/R 수업 내 교육<br>
-                        - 교수님 오피스아워<br><br>
-                        
-                        <strong>목표</strong><br>
-                        - 원칙과 이론 깊은 이해<br>
-                        - 실무 적용 능력<br>
-                        - 체계적 사고력
-                    </div>
-                </div>
-            </div>
-            
-            <div class="error-box" style="margin-top: 30px;">
-                <strong>💪 선배의 응원</strong><br>
-                "저도 수포자였는데 지금은 회계사 준비 중이에요! 대부분 학생이 아무것도 모르고 시작해요. 
-                교수님들이 정말 친절하게 알려주시고, 기초부터 탄탄히 배울 수 있어요!"
-            </div>
-        </div>
-
-        <!-- 탭 14: 영상광고 -->
-        <div id="tab14" class="tab-content">
-            <h2>🎬 영상이나 광고를 만드는 걸 좋아하는데, 경영학이랑 어떻게 연결할 수 있을까요?</h2>
-            
-            <div class="success-box" style="margin-bottom: 30px;">
-                <strong>🚀 영상 제작 + 경영 전략 = 최강 콘텐츠 크리에이터!</strong>
-            </div>
-            
-            <div class="columns columns-2">
-                <div>
-                    <h3>💡 시너지 효과</h3>
-                    <div class="info-box">
-                        <strong>창의성 + 전략성</strong><br>
-                        - 마케팅 프레임워크 → 영상 기획<br>
-                        - 타겟 분석 → 콘텐츠 최적화<br>
-                        - ROI 측정 → 효과 검증<br><br>
-                        
-                        <strong>비즈니스 콘텐츠</strong><br>
-                        - 단순 예쁜 영상 ❌<br>
-                        - 목표 달성하는 콘텐츠 ⭕<br>
-                        - 데이터 기반 크리에이티브
-                    </div>
-                </div>
-                
-                <div>
-                    <h3>🎯 실무 활용</h3>
-                    <div class="warning-box">
-                        <strong>기업 실무</strong><br>
-                        - A/B 테스트로 영상 최적화<br>
-                        - 데이터 기반 크리에이티브 개선<br>
-                        - 인플루언서 마케팅 ROI 분석<br>
-                        - SNS 캠페인 효과 측정<br><br>
-                        
-                        <strong>차별화 포인트</strong><br>
-                        - 창의적 + 분석적<br>
-                        - 아트 + 사이언스<br>
-                        - 감성 + 이성
-                    </div>
-                </div>
-            </div>
-            
-            <h3>📚 관련 교육 & 연구</h3>
-            <div class="columns columns-3">
-                <div class="success-box">
-                    <strong>활용 과목</strong><br>
-                    - 디지털 마케팅<br>
-                    - 소비자행동 연구<br>
-                    - 브랜드 전략<br>
-                    - 콘텐츠 비즈니스
-                </div>
-                
-                <div class="info-box">
-                    <strong>교수진 연구</strong><br>
-                    - 인플루언서 마케팅 ROI<br>
-                    - SNS 캠페인 효과<br>
-                    - 영상 콘텐츠 최적화<br>
-                    - 크리에이티브 전략
-                </div>
-                
-                <div class="error-box">
-                    <strong>진로</strong><br>
-                    - 광고 기획자<br>
-                    - 콘텐츠 PD<br>
-                    - 브랜드 필름 감독<br>
-                    - 디지털 마케터
-                </div>
-            </div>
-        </div>
+      )}
     </div>
+  );
+}
 
-    <footer>
-        <p>📧 문의: 미래융합대학 헬스케어융합학부 박대근 교수</p>
-        <p>🌐 전공 홈페이지: biz.cha.ac.kr</p>
-        <p style="margin-top: 15px; opacity: 0.8;">© 2025 차의과학대학교 경영학전공. All rights reserved.</p>
-    </footer>
-
-    <!-- HeyGen Avatar PIP Widget (우측 하단) -->
-    <div id="heygen-pip-container">
-        <span id="heygen-pip-label">🤖 AI 상담</span>
-        <button id="heygen-pip-close" onclick="toggleHeyGenPIP()">✕</button>
-        <iframe 
-            id="heygen-pip" 
-            src="https://dapper-moonbeam-54a024.netlify.app"
-            allow="camera; microphone; autoplay; clipboard-write"
-        ></iframe>
-    </div>
-    <button id="heygen-pip-toggle" onclick="toggleHeyGenPIP()">🤖</button>
-
-    <script>
-        function openTab(tabId) {
-            const contents = document.getElementsByClassName('tab-content');
-            for (let content of contents) {
-                content.classList.remove('active');
-            }
-            
-            const tabs = document.getElementsByClassName('tab');
-            for (let tab of tabs) {
-                tab.classList.remove('active');
-            }
-            
-            document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function toggleHeyGenPIP() {
-            const pip = document.getElementById('heygen-pip');
-            const label = document.getElementById('heygen-pip-label');
-            const closeBtn = document.getElementById('heygen-pip-close');
-            
-            pip.classList.toggle('minimized');
-            
-            if (pip.classList.contains('minimized')) {
-                label.style.display = 'none';
-                closeBtn.style.display = 'none';
-            } else {
-                label.style.display = 'block';
-                closeBtn.style.display = 'flex';
-            }
-        }
-    </script>
-</body>
-</html>
+export default function InteractiveAvatarWrapper() {
+  return (
+    <StreamingAvatarProvider basePath={process.env.NEXT_PUBLIC_BASE_API_URL}>
+      <InteractiveAvatar />
+    </StreamingAvatarProvider>
+  );
+}
