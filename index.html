@@ -225,13 +225,14 @@
 
         #heygen-pip {
             width: 380px;
-            height: 550px;
+            height: 214px;  /* 16:9 비율: 380 ÷ 16 × 9 = 214 */
             border: none;
             border-radius: 16px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            background: #1a1a2e;
+            background: transparent;  /* 검은 배경도 투명으로 */
             transition: all 0.3s ease;
         }
+        
 
         #heygen-pip.minimized {
             display: none;
@@ -310,9 +311,10 @@
             
             #heygen-pip {
                 width: 300px;
-                height: 450px;
+                height: 169px;  /* 16:9 비율: 300 ÷ 16 × 9 = 169 */
             }
         }
+
     </style>
 </head>
 <body>
