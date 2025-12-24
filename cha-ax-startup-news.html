@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>차의과학대, AI 아바타 창업 인재 양성 본격화 - CHA 뉴스</title>
+    <meta name="description" content="차의과학대학교가 'CHA-AX 프로젝트'를 통해 AI 아바타 챗봇 개발 역량을 갖춘 창업 인재 양성에 나선다.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.9;
+        }
+
+        .article-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.08);
+        }
+
+        /* 헤더 - 언론사 스타일 */
+        .news-header {
+            background: #1a1a1a;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .news-logo {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .news-logo span {
+            color: #4a90d9;
+        }
+
+        .news-nav {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        /* 카테고리 */
+        .category-bar {
+            background: #4a90d9;
+            color: white;
+            padding: 10px 30px;
+            font-size: 0.95em;
+        }
+
+        .category-bar a {
+            color: white;
+            text-decoration: none;
+            margin-right: 20px;
+        }
+
+        .category-bar a:hover {
+            text-decoration: underline;
+        }
+
+        /* 기사 본문 */
+        .article-content {
+            padding: 40px;
+        }
+
+        /* 기사 메타 정보 */
+        .article-meta {
+            margin-bottom: 25px;
+        }
+
+        .article-category {
+            display: inline-block;
+            background: #e74c3c;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .article-title {
+            font-size: 2em;
+            font-weight: 700;
+            color: #1a1a1a;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+
+        .article-subtitle {
+            font-size: 1.2em;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .article-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #888;
+            font-size: 0.9em;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 30px;
+        }
+
+        .reporter {
+            font-weight: 500;
+        }
+
+        .date {
+            color: #999;
+        }
+
+        /* 기사 이미지 */
+        .article-image {
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .article-image img {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+
+        .image-placeholder {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 350px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border-radius: 8px;
+            font-size: 1.2em;
+        }
+
+        .image-placeholder .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .image-caption {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 12px;
+            padding: 0 20px;
+        }
+
+        /* 기사 본문 텍스트 */
+        .article-body {
+            font-size: 1.05em;
+            color: #333;
+        }
+
+        .article-body p {
+            margin-bottom: 25px;
+            text-align: justify;
+        }
+
+        .article-body strong {
+            color: #1a1a1a;
+        }
+
+        /* 인용문 */
+        .quote-box {
+            background: #f8f9fa;
+            border-left: 4px solid #4a90d9;
+            padding: 25px 30px;
+            margin: 30px 0;
+            font-style: italic;
+        }
+
+        .quote-box p {
+            margin-bottom: 10px !important;
+            color: #444;
+        }
+
+        .quote-source {
+            text-align: right;
+            font-style: normal;
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        /* 하이라이트 박스 */
+        .highlight-box {
+            background: linear-gradient(135deg, #e8f4fc 0%, #d4e8f5 100%);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+
+        .highlight-box h4 {
+            color: #2c5282;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .highlight-box ul {
+            margin-left: 20px;
+            color: #444;
+        }
+
+        .highlight-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 관련 기사 */
+        .related-articles {
+            background: #fafafa;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 40px 0 20px;
+        }
+
+        .related-articles h4 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4a90d9;
+        }
+
+        .related-articles ul {
+            list-style: none;
+        }
+
+        .related-articles li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .related-articles li:last-child {
+            border-bottom: none;
+        }
+
+        .related-articles a {
+            color: #333;
+            text-decoration: none;
+        }
+
+        .related-articles a:hover {
+            color: #4a90d9;
+        }
+
+        /* 태그 */
+        .article-tags {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .tag {
+            display: inline-block;
+            background: #f0f0f0;
+            color: #555;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        /* 기자 정보 */
+        .reporter-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .reporter-avatar {
+            width: 60px;
+            height: 60px;
+            background: #4a90d9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5em;
+        }
+
+        .reporter-detail h5 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .reporter-detail p {
+            color: #666;
+            font-size: 0.9em;
+            margin: 0;
+        }
+
+        /* 푸터 */
+        .news-footer {
+            background: #1a1a1a;
+            color: #999;
+            padding: 30px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .news-footer p {
+            margin: 5px 0;
+        }
+
+        /* 소셜 공유 */
+        .social-share {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .share-btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: white;
+            font-size: 0.9em;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .share-facebook { background: #1877f2; }
+        .share-twitter { background: #1da1f2; }
+        .share-kakao { background: #fee500; color: #333; }
+
+        @media (max-width: 768px) {
+            .article-content {
+                padding: 25px;
+            }
+            
+            .article-title {
+                font-size: 1.5em;
+            }
+            
+            .article-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+
+        @media print {
+            .news-header, .category-bar, .social-share, .news-footer {
+                display: none;
+            }
+            
+            .article-container {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="article-container">
+        <!-- 언론사 헤더 -->
+        <header class="news-header">
+            <div class="news-logo">CHA <span>NEWS</span></div>
+            <div class="news-nav">대학뉴스 | 연구 | 의료 | 캠퍼스</div>
+        </header>
+
+        <!-- 카테고리 바 -->
+        <div class="category-bar">
+            <a href="#">HOME</a>
+            <a href="#">대학뉴스</a>
+            <a href="#">창업/취업</a>
+            <a href="#">AI/테크</a>
+        </div>
+
+        <!-- 기사 본문 -->
+        <article class="article-content">
+            <div class="article-meta">
+                <span class="article-category">단독</span>
+                <h1 class="article-title">차의과학대, 'AI 아바타 창업 인재' 양성 본격화<br>"포천에서 K-AI 스타트업 키운다"</h1>
+                <p class="article-subtitle">
+                    CHA-AX 프로젝트 통해 학생 주도 AI 챗봇 스타트업 육성… 
+                    바이오헬스케어 융합으로 차별화된 창업 생태계 구축
+                </p>
+                <div class="article-info">
+                    <span class="reporter">김민수 기자 | news@cha.ac.kr</span>
+                    <span class="date">2025.12.24 09:30 | 최종수정 2025.12.24 10:15</span>
+                </div>
+            </div>
+
+            <!-- 대표 이미지 -->
+            <div class="article-image">
+                <img src="cha-ax-thumbnail.png" alt="차의과학대학교 AI 아바타 창업 프로젝트 - 학생들이 AI 로봇과 함께 개발하는 모습" style="width: 100%; border-radius: 8px;">
+                <p class="image-caption">차의과학대학교가 추진하는 'CHA-AX 프로젝트'는 학생들에게 AI 아바타 챗봇 개발 역량을 갖추게 하고, 이를 기반으로 창업까지 연결하는 혁신적인 산학협력 모델이다. (이미지=차의과학대학교 제공)</p>
+            </div>
+
+            <!-- 기사 본문 -->
+            <div class="article-body">
+                <p>
+                    <strong>차의과학대학교(총장 OOO)가 AI 아바타 기술을 활용한 학생 창업 생태계 구축에 본격 나선다.</strong> 
+                    대학 측은 2026년부터 'CHA-AX(AI Transformation) 프로젝트'를 추진하며, 
+                    단순히 캠퍼스 내 AI 챗봇을 도입하는 것을 넘어 학생들이 직접 개발에 참여하고, 
+                    이를 창업으로 연결하는 혁신적인 모델을 선보인다.
+                </p>
+
+                <p>
+                    김정환·박대근 교수(미래융합대학 헬스케어융합학부)가 주도하는 이 프로젝트는 
+                    입학처, 교무처, 취업지원센터 등 6개 부서에 AI 아바타 챗봇을 구축하는 대형 사업이다. 
+                    핵심은 <strong>외부 업체에 전적으로 의존하지 않고, 학생들이 개발 과정에 직접 참여</strong>한다는 점이다.
+                </p>
+
+                <div class="quote-box">
+                    <p>"학생들이 단순히 AI를 '사용'하는 것이 아니라 '만드는' 경험을 해야 합니다. 
+                    CHA-AX는 학생들에게 실전 개발 경험을 제공하고, 이를 바탕으로 창업까지 도전할 수 있는 
+                    발판을 마련해주는 프로젝트입니다."</p>
+                    <p class="quote-source">— 박대근 교수 (헬스케어융합학부)</p>
+                </div>
+
+                <p>
+                    특히 차의과학대학교는 바이오헬스케어 특화 대학이라는 강점을 살려, 
+                    <strong>의료·건강 분야에 특화된 AI 챗봇</strong> 개발에 집중할 계획이다. 
+                    병원 예약 안내, 건강 상담, 의료 정보 제공 등 헬스케어 도메인에서 
+                    차별화된 경쟁력을 갖춘 스타트업을 육성하겠다는 전략이다.
+                </p>
+
+                <div class="highlight-box">
+                    <h4>📌 CHA-AX 프로젝트 학생 참여 프로그램</h4>
+                    <ul>
+                        <li><strong>AI 아바타 개발 인턴십</strong> - 프로젝트 참여 업체에서 실무 경험</li>
+                        <li><strong>캡스톤 디자인 연계</strong> - 졸업 프로젝트로 AI 챗봇 개발</li>
+                        <li><strong>창업 동아리 지원</strong> - AI 챗봇 스타트업 창업팀 멘토링</li>
+                        <li><strong>창업경진대회</strong> - 우수 아이디어 시상 및 투자 연계</li>
+                        <li><strong>특허 출원 지원</strong> - 학생 개발 기술 지적재산권 확보</li>
+                    </ul>
+                </div>
+
+                <p>
+                    대학 측은 이미 소프트웨어융합 전공 신설을 추진 중이며, 
+                    '생성형 AI 기반 봇 개발'을 핵심 커리큘럼으로 편성할 예정이다. 
+                    AI의료데이터 전공, 디지털보건의료 전공 학생들과의 융합 프로젝트도 계획하고 있다.
+                </p>
+
+                <p>
+                    <strong>김정환 교수</strong>는 "포천 캠퍼스가 대한민국 AI 창업의 새로운 허브가 될 것"이라며 
+                    "지방 소재 대학이라는 한계를 오히려 기회로 삼아, 집중적인 창업 지원 환경을 만들겠다"고 밝혔다.
+                </p>
+
+                <div class="quote-box">
+                    <p>"서울이 아니어도 됩니다. AI는 인터넷만 있으면 어디서든 개발하고 서비스할 수 있습니다. 
+                    포천에서 시작해 글로벌로 뻗어나가는 K-AI 스타트업, 충분히 가능합니다."</p>
+                    <p class="quote-source">— 김정환 교수 (헬스케어융합학부)</p>
+                </div>
+
+                <p>
+                    현재 차의과학대학교는 국내외 AI 아바타 전문 업체들을 대상으로 제안요청서(RFP)를 배포하고, 
+                    2026년 상반기 중 사업자 선정을 완료할 계획이다. 
+                    선정된 업체는 학생 인턴십 프로그램 운영을 필수 조건으로 이행해야 한다.
+                </p>
+
+                <p>
+                    업계에서는 이번 프로젝트가 <strong>대학 AI 도입의 새로운 모델</strong>이 될 것으로 주목하고 있다. 
+                    단순 외주 개발이 아닌, 학생 참여형·창업 연계형 모델은 
+                    산학협력의 새로운 방향을 제시한다는 평가다.
+                </p>
+
+                <div class="highlight-box">
+                    <h4>🚀 학생 창업 지원 로드맵</h4>
+                    <ul>
+                        <li><strong>1단계 (2026)</strong> - CHA-AX 프로젝트 참여, 실무 역량 습득</li>
+                        <li><strong>2단계 (2026~2027)</strong> - 창업 동아리 결성, 아이디어 구체화</li>
+                        <li><strong>3단계 (2027~)</strong> - 스타트업 창업, 초기 투자 유치</li>
+                        <li><strong>목표</strong> - 2028년까지 AI 챗봇 스타트업 10개 이상 배출</li>
+                    </ul>
+                </div>
+
+                <p>
+                    차의과학대학교는 향후 성공적인 학생 창업 사례가 나올 경우, 
+                    대학 차원의 투자 참여와 차병원 그룹과의 협력을 통한 실증 기회 제공도 검토하고 있다. 
+                    <strong>"포천에서 시작해 세계로"</strong>라는 슬로건 아래, 
+                    AI 창업 인재 양성의 새로운 모델을 만들어간다는 계획이다.
+                </p>
+            </div>
+
+            <!-- 태그 -->
+            <div class="article-tags">
+                <span class="tag"># 차의과학대학교</span>
+                <span class="tag"># AI아바타</span>
+                <span class="tag"># 창업</span>
+                <span class="tag"># CHA-AX</span>
+                <span class="tag"># 헬스케어AI</span>
+                <span class="tag"># 대학혁신</span>
+                <span class="tag"># 포천</span>
+                <span class="tag"># 스타트업</span>
+            </div>
+
+            <!-- 소셜 공유 -->
+            <div class="social-share">
+                <a href="#" class="share-btn share-facebook">📘 페이스북</a>
+                <a href="#" class="share-btn share-twitter">🐦 트위터</a>
+                <a href="#" class="share-btn share-kakao">💬 카카오톡</a>
+            </div>
+
+            <!-- 기자 정보 -->
+            <div class="reporter-info">
+                <div class="reporter-avatar">👤</div>
+                <div class="reporter-detail">
+                    <h5>김민수 기자</h5>
+                    <p>대학·교육 담당 | news@cha.ac.kr</p>
+                </div>
+            </div>
+
+            <!-- 관련 기사 -->
+            <div class="related-articles">
+                <h4>📰 관련 기사</h4>
+                <ul>
+                    <li><a href="#">차의과학대, 2026년 소프트웨어융합 전공 신설 추진</a></li>
+                    <li><a href="#">[인터뷰] 박대근 교수 "AI 시대, 경영학의 새로운 역할"</a></li>
+                    <li><a href="#">국내 대학 AI 도입 현황... "아직 걸음마 단계"</a></li>
+                    <li><a href="#">차병원그룹, 디지털 헬스케어 투자 확대</a></li>
+                </ul>
+            </div>
+        </article>
+
+        <!-- 푸터 -->
+        <footer class="news-footer">
+            <p><strong>CHA NEWS</strong> | 차의과학대학교 홍보팀</p>
+            <p>경기도 포천시 해룡로 120 차의과학대학교</p>
+            <p>© 2025 CHA University. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
