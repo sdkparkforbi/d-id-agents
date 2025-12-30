@@ -271,6 +271,20 @@
             display: block;
         }
 
+        #heygen-pip-container.dragging #heygen-pip {
+            pointer-events: none;
+        }
+
+        #heygen-pip-container.dragging::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1;
+        }
+
         #heygen-pip-container.minimized #heygen-pip,
         #heygen-pip-container.minimized #heygen-pip-drag-handle {
             display: none;
@@ -1167,6 +1181,7 @@
         dragHandle.addEventListener('mousedown', (e) => {
             if (e.target.tagName === 'BUTTON') return;
             isDragging = true;
+            pipContainer.classList.add('dragging');
             offsetX = e.clientX - pipContainer.getBoundingClientRect().left;
             offsetY = e.clientY - pipContainer.getBoundingClientRect().top;
             pipContainer.style.transition = 'none';
@@ -1193,14 +1208,18 @@
         });
 
         document.addEventListener('mouseup', () => {
-            isDragging = false;
-            pipContainer.style.transition = 'all 0.3s ease';
+            if (isDragging) {
+                isDragging = false;
+                pipContainer.classList.remove('dragging');
+                pipContainer.style.transition = 'all 0.3s ease';
+            }
         });
 
         // 터치 지원 (모바일)
         dragHandle.addEventListener('touchstart', (e) => {
             if (e.target.tagName === 'BUTTON') return;
             isDragging = true;
+            pipContainer.classList.add('dragging');
             const touch = e.touches[0];
             offsetX = touch.clientX - pipContainer.getBoundingClientRect().left;
             offsetY = touch.clientY - pipContainer.getBoundingClientRect().top;
@@ -1227,8 +1246,11 @@
         });
 
         document.addEventListener('touchend', () => {
-            isDragging = false;
-            pipContainer.style.transition = 'all 0.3s ease';
+            if (isDragging) {
+                isDragging = false;
+                pipContainer.classList.remove('dragging');
+                pipContainer.style.transition = 'all 0.3s ease';
+            }
         });
     </script>
 </body>
