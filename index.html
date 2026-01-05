@@ -1149,6 +1149,7 @@
     <button id="heygen-pip-toggle" onclick="toggleHeyGenPIP(event)">🤖</button>
 
     <script>
+        // ✨ 수정된 openTab 함수 - postMessage 전송 추가
         function openTab(tabId) {
             const contents = document.getElementsByClassName('tab-content');
             for (let content of contents) {
@@ -1164,6 +1165,16 @@
             event.target.classList.add('active');
             
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // ✨ HeyGen PIP에 탭 변경 알림 (postMessage)
+            const pipIframe = document.getElementById('heygen-pip');
+            if (pipIframe && pipIframe.contentWindow) {
+                pipIframe.contentWindow.postMessage({
+                    type: 'TAB_CHANGED',
+                    tabId: tabId
+                }, 'https://dapper-moonbeam-54a024.netlify.app');
+                console.log('📤 TAB_CHANGED sent:', tabId);
+            }
         }
 
         function toggleHeyGenPIP(e) {
