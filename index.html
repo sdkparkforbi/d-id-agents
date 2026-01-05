@@ -264,7 +264,7 @@
             width: 380px;
             height: 214px;
             border: none;
-            border-radius: 0 0 16px 16px;
+            border-radius: 16px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
             background: #1a1a1a;
             transition: all 0.3s ease;
@@ -285,8 +285,7 @@
             z-index: 1;
         }
 
-        #heygen-pip-container.minimized #heygen-pip,
-        #heygen-pip-container.minimized #heygen-pip-drag-handle {
+        #heygen-pip-container.minimized #heygen-pip {
             display: none;
         }
 
@@ -1136,10 +1135,6 @@
 
     <!-- HeyGen Avatar PIP Widget (드래그 가능) -->
     <div id="heygen-pip-container">
-        <div id="heygen-pip-drag-handle">
-            <span>🤖 AI 상담</span>
-            <button id="heygen-pip-minimize" onclick="toggleHeyGenPIP(event)">−</button>
-        </div>
         <iframe 
             id="heygen-pip" 
             src="https://dapper-moonbeam-54a024.netlify.app"
@@ -1185,12 +1180,11 @@
 
         // 드래그 기능
         const pipContainer = document.getElementById('heygen-pip-container');
-        const dragHandle = document.getElementById('heygen-pip-drag-handle');
         let isDragging = false;
         let offsetX, offsetY;
 
-        dragHandle.addEventListener('mousedown', (e) => {
-            if (e.target.tagName === 'BUTTON') return;
+        pipContainer.addEventListener('mousedown', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'IFRAME') return;
             isDragging = true;
             pipContainer.classList.add('dragging');
             offsetX = e.clientX - pipContainer.getBoundingClientRect().left;
@@ -1227,8 +1221,8 @@
         });
 
         // 터치 지원 (모바일)
-        dragHandle.addEventListener('touchstart', (e) => {
-            if (e.target.tagName === 'BUTTON') return;
+        pipContainer.addEventListener('touchstart', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'IFRAME') return;
             isDragging = true;
             pipContainer.classList.add('dragging');
             const touch = e.touches[0];
