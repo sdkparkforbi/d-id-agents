@@ -1262,6 +1262,8 @@
         // 🎯 PIP에서 탭 이동 명령 수신
         // ============================================
         window.addEventListener('message', (event) => {
+            console.log('📨 Message received:', event.origin, event.data);
+            
             // origin 검증
             const allowedOrigins = [
                 'https://dapper-moonbeam-54a024.netlify.app',
@@ -1274,13 +1276,15 @@
             );
             
             if (!isAllowed) {
+                console.log('❌ Origin not allowed:', event.origin);
                 return;
             }
 
             const { type, tabId } = event.data || {};
+            console.log('📥 Parsed message:', { type, tabId });
             
             if (type === 'NAVIGATE_TAB' && tabId) {
-                console.log('📥 NAVIGATE_TAB received:', tabId);
+                console.log('✅ NAVIGATE_TAB executing:', tabId);
                 openTab(tabId);
             }
         });
