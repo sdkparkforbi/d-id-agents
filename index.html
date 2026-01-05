@@ -1257,6 +1257,33 @@
                 pipContainer.style.transition = 'all 0.3s ease';
             }
         });
+
+        // ============================================
+        // 🎯 PIP에서 탭 이동 명령 수신
+        // ============================================
+        window.addEventListener('message', (event) => {
+            // origin 검증
+            const allowedOrigins = [
+                'https://dapper-moonbeam-54a024.netlify.app',
+                'http://localhost',
+                'http://127.0.0.1'
+            ];
+            
+            const isAllowed = allowedOrigins.some(origin => 
+                event.origin.startsWith(origin)
+            );
+            
+            if (!isAllowed) {
+                return;
+            }
+
+            const { type, tabId } = event.data || {};
+            
+            if (type === 'NAVIGATE_TAB' && tabId) {
+                console.log('📥 NAVIGATE_TAB received:', tabId);
+                openTab(tabId);
+            }
+        });
     </script>
 </body>
 </html>
